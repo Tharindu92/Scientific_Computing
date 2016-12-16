@@ -12,7 +12,7 @@ int main(){
 	double time_spent;
 	float sum1;
 	double sum2;
-	FILE *f = fopen("serial_results.txt", ab+);
+	FILE *f = fopen("serial_results.txt", "ab+");
 	srand(time(NULL));
 	for(i=0; i < 3; i++){
 		size = sizes[i];
