@@ -4,6 +4,7 @@
 #include <omp.h>
 #include <getopt.h>
 #include <unistd.h>
+//#include <cuda.h>
 
 float dotProduct_float_serial(float vector1[], float vector2[], long size);
 float dotProduct_float_parallel(float vector1[], float vector2[], long size, int thread_count);
@@ -64,7 +65,7 @@ int operations(long sizes[3], int parallel, int serial, int cuda, int verify, in
 	int i,j;
 	long size;
 	clock_t begin, end;
-	double time_spent_serial = -1, time_spent_parallel, time_spent_cuda;
+	double time_spent_serial, time_spent_parallel, time_spent_cuda;
 	float sum1;
 	double sum2;
 	FILE *f1 = fopen("serial_results.txt", "ab+");
@@ -219,7 +220,7 @@ int print_results_double(FILE *f, long size, double sum1, double time_spent){
 }
 
 float dotProduct_float_serial(float* vector1, float* vector2, long size){
-	float sum = 0.0;
+	float sum = 0.f;
 	int i;
 	for(i=0; i < size; i++){
 		sum += (*(vector1+i)) * (*(vector2+i));
@@ -228,7 +229,7 @@ float dotProduct_float_serial(float* vector1, float* vector2, long size){
 }
 
 float dotProduct_float_parallel(float* vector1, float* vector2, long size, int thread_count){
-	float sum = 0.0;
+	float sum = 0.f;
 	int i;
 	#pragma omp parallel num_threads(thread_count)
 	{
@@ -241,6 +242,7 @@ float dotProduct_float_parallel(float* vector1, float* vector2, long size, int t
 	return sum;
 }
 
+//__global__()
 
 double dotProduct_double_serial(double* vector1, double* vector2, long size){
 	double sum = 0.0;
