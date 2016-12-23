@@ -6,8 +6,8 @@
 #define print(x) printf("%d",x)
 
 double doubleGen();
-__global__ void dotProduct_CUDA(double *sum, int size, double *vector1, double *vector2){
-	int idx = blockIdx.x*blockDim.x+threadIdx.x;  // Sequential thread index across the blocks
+__global__ void dotProduct_CUDA(double *sum, long size, double *vector1, double *vector2){
+	long idx = blockIdx.x*blockDim.x+threadIdx.x;  // Sequential thread index across the blocks
 	if(idx < size){
 		//printf("Before idx%d : %lf\n",idx,sum[idx]);
 		sum[idx] = (vector2[idx]) * (vector1[idx]);
@@ -18,7 +18,7 @@ __global__ void dotProduct_CUDA(double *sum, int size, double *vector1, double *
 }
 
 int main(void){
-	int num = 10;
+	long num = 1000000000;
 	int num_block = (num + NUM_THREAD - 1)/(NUM_THREAD);
 	dim3 dimGrid(num_block,1,1);  // Grid dimensions
 	dim3 dimBlock(NUM_THREAD,1,1);  // Block dimensions
@@ -45,10 +45,7 @@ int main(void){
 	// Initialize array in device to 0
 	cudaMemset(sumDev, 0, size);
 	cudaMemcpy(vector1_device, vector1, size, cudaMemcpyHostToDevice);
-	cudaError_t er = cudaMemcpy(vector2_device, vector2, size, cudaMemcpyHostToDevice);
-		/*if(er == cudaError_t.cudaSuccess){
-			printf("********************************************\n");
-		}*/
+	cudaMemcpy(vector2_device, vector2, size, cudaMemcpyHostToDevice);
 
 	// Do calculation on device
 	dotProduct_CUDA <<<num_block, NUM_THREAD>>> (sumDev, num, vector1_device, vector2_device); // call CUDA kernel
