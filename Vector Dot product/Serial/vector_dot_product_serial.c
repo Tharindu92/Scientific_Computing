@@ -23,6 +23,9 @@ int main(int argc, char **argv){
 	int verify = 0;
 	int thread_count = 2;
 	int c;
+	float a = 1927490856.623;
+	double ab = 1927490856.623;
+	printf("print a %f\nprint ab %lf\n",a,ab);
 	while((c = getopt(argc, argv, "scp:v")) != -1){
 		switch(c){
 			case 'p':
@@ -56,7 +59,7 @@ int main(int argc, char **argv){
 
 		}
 	}
-	long sizes[3] = {100000000, 500000000, 1000000000};
+	long sizes[3] = {100000000, 10000000, 10000000};
 
 	operations(sizes, parallel, serial, cuda, verify, thread_count);
 }
@@ -81,11 +84,16 @@ int operations(long sizes[3], int parallel, int serial, int cuda, int verify, in
 		for(j=0; j < size; j++){
 			*(vector1+j) = floatGen();
 			*(vector2+j) = floatGen();
+			if(size < 5){
+				printf("Vector 1 %d th element : %f\n",j,*(vector1+j));
+				printf("Vector 2 %d th element : %f\n",j,*(vector2+j));
+			}
 		}
 		printf("===================================================================\n");
 		fprintf(f1, "===================================================================\n");
 		printf("\tVector Initialization is completed\n");
 		if(serial || verify){
+			printf("Run Serial\n");
 			begin = clock();
 			sum1 = dotProduct_float_serial(vector1,vector2,size);
 			end = clock();
@@ -94,6 +102,7 @@ int operations(long sizes[3], int parallel, int serial, int cuda, int verify, in
 		}
 
 		if(parallel){
+			printf("Run Parallel\n");
 			begin = clock();
 			sum1 = dotProduct_float_parallel(vector1,vector2,size,thread_count);
 			end = clock();
@@ -200,7 +209,7 @@ int operations(long sizes[3], int parallel, int serial, int cuda, int verify, in
 }
 
 int print_results_float(FILE *f, long size, float sum1, double time_spent){
-	//printf("Vector size : %ld\n",size);
+	//printf("\n\nVector size : %ld\n",size);
 	//printf("Dot product : %f\n", sum1);
 	//printf("Single Precision Time Spent : %lf\n\n",time_spent);
 	fprintf(f,"Vector size : %ld\n",size);
@@ -210,9 +219,9 @@ int print_results_float(FILE *f, long size, float sum1, double time_spent){
 }
 
 int print_results_double(FILE *f, long size, double sum1, double time_spent){
-	//printf("Vector size : %ld\n",size);
-	//printf("Dot product : %lf\n", sum1);
-	//printf("Double Precision Time Spent : %lf\n\n",time_spent);
+	printf("Vector size : %ld\n",size);
+	printf("Dot product : %lf\n", sum1);
+	printf("Double Precision Time Spent : %lf\n\n",time_spent);
 	fprintf(f,"Vector size : %ld\n",size);
 	fprintf(f,"Dot product : %lf", sum1);
 	fprintf(f,"Double Precision Time Spent : %lf\n\n",time_spent);
@@ -220,7 +229,7 @@ int print_results_double(FILE *f, long size, double sum1, double time_spent){
 }
 
 float dotProduct_float_serial(float* vector1, float* vector2, long size){
-	float sum = 0.f;
+	float sum = 0.0;
 	int i;
 	for(i=0; i < size; i++){
 		sum += (*(vector1+i)) * (*(vector2+i));
