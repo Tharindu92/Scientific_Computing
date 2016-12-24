@@ -291,7 +291,6 @@ float verifyVectorf(float *vector1, float *vector2, int size){
 		error += abs(vector1[i] - vector2[i]);
 	}
 	error /= size;
-	//print(288);
 	return error;
 }
 
@@ -338,26 +337,6 @@ float *matrixMul_float_parallel(float* vector1, float* vector2, int size, int th
 			}
 		}		
 	}
-	/*
-	if(size < 5){
-		printf("%s\n", "Vector 1");
-		for(i=0; i<size; i++){
-			for(j=0; j<size; j++){
-				printf("%f  ",*(vector1+(i*size+j)));
-			}
-			printf("\n");
-		}
-		printf("%s\n", "Vector 2");
-		for(i=0; i<size; i++){
-			for(j=0; j<size; j++){
-				printf("%f  ",*(vector1+(i*size+j)));
-			}
-			printf("\n");
-		}
-		
-	}
-	printf("First value %f\n", *vector1);
-	*/
 	return ans;
 }
  
@@ -368,10 +347,10 @@ float *matrixMul_float_cuda(float* vector1, float* vector2, int num){
 	float *vector1_device;
 	float *vector2_device;
 	sumHost = (float *)malloc(size); //  Allocate array on host
-	//print(356);
-	cudaMalloc((void **) &sumDev, size); //print(366); // Allocate array on device
-	cudaMalloc((void **) &vector1_device, size); //print(367); // Allocate array on device
-	cudaMalloc((void **) &vector2_device, size); //print(368); // Allocate array on device
+
+	cudaMalloc((void **) &sumDev, size);  // Allocate array on device
+	cudaMalloc((void **) &vector1_device, size);  // Allocate array on device
+	cudaMalloc((void **) &vector2_device, size); // Allocate array on device
 	// Initialize array in device to 0
 	cudaMemset(sumDev, 0, size);//print(370);
 	cudaMemcpy(vector1_device, vector1, size, cudaMemcpyHostToDevice); //print(371);
@@ -390,7 +369,6 @@ float *matrixMul_float_cuda(float* vector1, float* vector2, int num){
 	return sumHost;
 }
 
-//i*size + j
 double *matrixMul_double_serial(double* vector1, double* vector2, int size){
 	double sum = 0.0;
 	int i,j,k;

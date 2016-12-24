@@ -7,9 +7,9 @@
 #include <getopt.h>
 #include <stdlib.h>
 
-#define NBIN 10000000  // Number of bins
 #define NUM_BLOCK  30  // Number of thread blocks
 #define NUM_THREAD  8  // Number of threads per block
+#define NBIN 10000000  // Number of bins
 #define PI 3.1415926535  // known value of pi
 int tid;
 float pi = 0;
