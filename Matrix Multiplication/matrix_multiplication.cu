@@ -31,11 +31,6 @@ __global__ void matMul_CUDA_double(double *sum, int size, double *vector1, doubl
 			sum[idx] += (*(vector1+(idx-(idx % size)+k))) * (*(vector2+(k*size+(idx % size))));
 		}
 	}
-	/*
-		0 1 2  0 1 2   3x0+4x3+5x6	idx = 3   
-		3 4 5  3 4 5   3x1+4x4+5x7	idx = 4
-		6 7 8  6 7 8	
-	*/
 }
 
 __global__ void matMul_CUDA_float(float *sum, int size, float *vector1, float *vector2){
