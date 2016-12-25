@@ -18,8 +18,8 @@ double *matrixMul_double_cuda(double* vector1, double* vector2, int num);
 double doubleGen();
 float floatGen();
 void operations(int size, int parallel, int serial, int cuda, int verify, int thread_count);
-void print_results_float(FILE *f, int size, double time_spent);
-void print_results_double(FILE *f, int size, double time_spent);
+void print_results_float( int size, double time_spent);
+void print_results_double( int size, double time_spent);
 double verifyVectord(double *vector1, double *vector2, int size);
 float verifyVectorf(float *vector1, float *vector2, int size);
 
@@ -104,9 +104,6 @@ void operations(int size, int parallel, int serial, int cuda, int verify, int th
 	int t_size;
 	clock_t begin, end;
 	double time_spent_serial, time_spent_parallel, time_spent_cuda;
-	FILE *f1 = fopen("serial_results.txt", "ab+");
-	FILE *f2 = fopen("parallel_results.txt", "ab+");
-	FILE *f3 = fopen("cuda_results.txt", "ab+");
 	srand(time(NULL));
 	t_size = size*size;
 	float *vector1;
@@ -114,41 +111,42 @@ void operations(int size, int parallel, int serial, int cuda, int verify, int th
 	float *vector2;
 	vector2 = (float*) malloc(t_size * sizeof(float));
 	float *ans_fserial;
-	//ans_fserial = (float*) malloc(t_size * sizeof(float));
 	float *ans_fparallel;
-	//ans_fparallel = (float*) malloc(t_size * sizeof(float));
 	float *ans_fcuda;
-	//ans_fcuda = (float*) malloc(t_size * sizeof(float));
+
 	for(j=0; j < t_size; j++){
 		*(vector1+j) = floatGen();
 		*(vector2+j) = floatGen();
 	}
+
 	printf("===================================================================\n");
-	fprintf(f1, "===================================================================\n");
 	printf("\tVector Initialization is completed\n");
+
 	if(serial || verify){
+		printf("Run Serial\n");
 		begin = clock();
 		ans_fserial = matrixMul_float_serial(vector1,vector2,size);
 		end = clock();
 		time_spent_serial = (double)(end - begin)/ CLOCKS_PER_SEC;
-		print_results_float(f1, size, time_spent_serial);
+		print_results_float( size, time_spent_serial);
 	}
 
 	if(parallel){
+		printf("Run Parallel\n");
 		begin = clock();
 		ans_fparallel = matrixMul_float_parallel(vector1,vector2,size,thread_count);
 		end = clock();
 		time_spent_parallel = (double)(end - begin)/ CLOCKS_PER_SEC;
-		print_results_float(f2, size, time_spent_parallel);
+		print_results_float( size, time_spent_parallel);
 	}
-	//print(148);
+
 	if(cuda){
 		printf("Run CUDA\n");
-		begin = clock(); //print(151);
+		begin = clock();
 		ans_fcuda = matrixMul_float_cuda(vector1,vector2,size);
 		end = clock();
 		time_spent_cuda = (double)(end - begin)/ CLOCKS_PER_SEC;
-		print_results_float(f3, size, time_spent_cuda);
+		print_results_float( size, time_spent_cuda);
 	}
 
 	if(verify){
@@ -188,33 +186,34 @@ void operations(int size, int parallel, int serial, int cuda, int verify, int th
 	if(cuda)
 		free(ans_fcuda);
 	double *vector3;
-	vector3 = (double*) malloc(t_size * sizeof(double));	//print(161);
+	vector3 = (double*) malloc(t_size * sizeof(double));
 	double *vector4;
-	vector4 = (double*) malloc(t_size * sizeof(double));	//print(163);
+	vector4 = (double*) malloc(t_size * sizeof(double));
 	double *ans_dserial;
-	//ans_fserial = (float*) malloc(t_size * sizeof(float));
 	double *ans_dparallel;
-	//ans_fparallel = (float*) malloc(t_size * sizeof(float));
 	double *ans_dcuda;
-	//ans_dcuda = (double*) malloc(t_size * sizeof(double));
+
 	for(j=0; j < t_size; j++){
 		*(vector3+j) = doubleGen();
 		*(vector4+j) = doubleGen();
 	}
+
 	if(serial || verify){
+		printf("Run Serial\n");
 		begin = clock();		
 		ans_dserial = matrixMul_double_serial(vector3,vector4,size);
 		end = clock();
 		time_spent_serial = (double)(end - begin)/ CLOCKS_PER_SEC;
-		print_results_double(f1, size, time_spent_serial);		
+		print_results_double( size, time_spent_serial);
 	}
 
 	if(parallel){
+		printf("Run Parallel\n");
 		begin = clock();		
 		ans_dparallel = matrixMul_double_parallel(vector3,vector4,size,thread_count);
 		end = clock();
 		time_spent_parallel = (double)(end - begin)/ CLOCKS_PER_SEC;
-		print_results_double(f2, size, time_spent_parallel);
+		print_results_double( size, time_spent_parallel);
 	}
 
 	if(cuda){
@@ -223,11 +222,10 @@ void operations(int size, int parallel, int serial, int cuda, int verify, int th
 		ans_dcuda = matrixMul_double_cuda(vector3,vector4,size);
 		end = clock();
 		time_spent_cuda = (double)(end - begin)/ CLOCKS_PER_SEC;
-		print_results_double(f3, size, time_spent_cuda);
+		print_results_double( size, time_spent_cuda);
 	}
-	//print(236);
+
 	if(verify){
-		//printf(238);
 		double error_d;
 		double confident_d = 4*size / 10000;
 		
@@ -264,27 +262,20 @@ void operations(int size, int parallel, int serial, int cuda, int verify, int th
 		free(ans_dparallel);
 	if(cuda)	
 		free(ans_dcuda);
-	fclose(f1);
-	fclose(f2);
-	fclose(f3);
 }
 
-void print_results_float(FILE *f, int size, double time_spent){
+void print_results_float( int size, double time_spent){
 	printf("Single Precision Time Spent : %lf\n\n",time_spent);		
-	fprintf(f,"Vector size : %d\n",size);
-	fprintf(f,"Single Precision Time Spent : %lf\n\n",time_spent);
-	fprintf(f, "===================================================================\n");
 }
 
-void print_results_double(FILE *f, int size, double time_spent){
+void print_results_double( int size, double time_spent){
 	printf("Double Precision Time Spent : %lf\n\n",time_spent);		
-	fprintf(f,"Vector size : %d\n",size);
-	fprintf(f,"Double Precision Time Spent : %lf\n\n",time_spent);
-	fprintf(f, "===================================================================\n");
 }
 
+/*
+ * Verify the answer matrix
+ */
 float verifyVectorf(float *vector1, float *vector2, int size){
-	//print(293);
 	float error = 0;
 	int i;	
 	for(i = 0; i<size; i++){
@@ -304,6 +295,9 @@ double verifyVectord(double *vector1, double *vector2, int size){
 	return error;
 }
 
+/*
+ * Sequential Matrix Multiplication
+ */
 float *matrixMul_float_serial(float* vector1, float* vector2, int size){
 	float sum = 0.0;
 	int i,j,k;
@@ -320,6 +314,25 @@ float *matrixMul_float_serial(float* vector1, float* vector2, int size){
 	return ans;
 }
 
+double *matrixMul_double_serial(double* vector1, double* vector2, int size){
+	double sum = 0.0;
+	int i,j,k;
+	double* ans = (double*) malloc(size * size * sizeof(double));
+	for(i=0; i < size; i++){
+		for(j=0; j < size; j++){
+			sum = 0;
+			for(k=0; k< size; k++){
+				sum += (*(vector1+(i*size+k))) * (*(vector2+(k*size+j)));
+			}
+			ans[i*size+j] = sum;
+		}
+	}
+	return ans;
+}
+
+/*
+ * OMP Thread parallel matrix multiplication
+ */
 float *matrixMul_float_parallel(float* vector1, float* vector2, int size, int thread_count){
 	float sum = 0.0;
 	int i,j,k;
@@ -337,52 +350,6 @@ float *matrixMul_float_parallel(float* vector1, float* vector2, int size, int th
 			}
 		}		
 	}
-	return ans;
-}
- 
-float *matrixMul_float_cuda(float* vector1, float* vector2, int num){	
-	int num_block = (num*num + NUM_THREAD - 1)/(NUM_THREAD); //print(358);
-	size_t size = num*num*sizeof(float);  //Array memory size.
-	float *sumHost, *sumDev;  // Pointer to host & device arrays
-	float *vector1_device;
-	float *vector2_device;
-	sumHost = (float *)malloc(size); //  Allocate array on host
-
-	cudaMalloc((void **) &sumDev, size);  // Allocate array on device
-	cudaMalloc((void **) &vector1_device, size);  // Allocate array on device
-	cudaMalloc((void **) &vector2_device, size); // Allocate array on device
-	// Initialize array in device to 0
-	cudaMemset(sumDev, 0, size);//print(370);
-	cudaMemcpy(vector1_device, vector1, size, cudaMemcpyHostToDevice); //print(371);
-	cudaMemcpy(vector2_device, vector2, size, cudaMemcpyHostToDevice); //print(372);
-
-	// Do calculation on device
-	matMul_CUDA_float <<<num_block, NUM_THREAD>>> (sumDev, num, vector1_device, vector2_device); // call CUDA kernel
-	// Retrieve result from device and store it in host array 
-	//print(377);
-	cudaMemcpy(sumHost, sumDev, size, cudaMemcpyDeviceToHost);//print(378);
-	// Cleanup
-	//free(sumHost); 
-	cudaFree(sumDev);
-	cudaFree(vector1_device);
-	cudaFree(vector2_device);
-	return sumHost;
-}
-
-double *matrixMul_double_serial(double* vector1, double* vector2, int size){
-	double sum = 0.0;
-	int i,j,k;
-	double* ans = (double*) malloc(size * size * sizeof(double));
-	for(i=0; i < size; i++){
-		for(j=0; j < size; j++){
-			sum = 0;
-			for(k=0; k< size; k++){
-				sum += (*(vector1+(i*size+k))) * (*(vector2+(k*size+j)));
-			}
-			ans[i*size+j] = sum;
-		}
-	}
-	//printf("First value %lf", *vector1);
 	return ans;
 }
 
@@ -403,9 +370,38 @@ double *matrixMul_double_parallel(double* vector1, double* vector2, int size, in
 			}
 		}
 	}
-	
-	//printf("First value %lf", *vector1);
+
 	return ans;
+}
+ 
+/*
+ * CUDA GPU Matrix Multiplication
+ */
+float *matrixMul_float_cuda(float* vector1, float* vector2, int num){	
+	int num_block = (num*num + NUM_THREAD - 1)/(NUM_THREAD); //print(358);
+	size_t size = num*num*sizeof(float);  //Array memory size.
+	float *sumHost, *sumDev;  // Pointer to host & device arrays
+	float *vector1_device;
+	float *vector2_device;
+	sumHost = (float *)malloc(size); //  Allocate array on host
+
+	cudaMalloc((void **) &sumDev, size);  // Allocate array on device
+	cudaMalloc((void **) &vector1_device, size);  // Allocate array on device
+	cudaMalloc((void **) &vector2_device, size); // Allocate array on device
+	// Initialize array in device to 0
+	cudaMemset(sumDev, 0, size);//print(370);
+	cudaMemcpy(vector1_device, vector1, size, cudaMemcpyHostToDevice); //print(371);
+	cudaMemcpy(vector2_device, vector2, size, cudaMemcpyHostToDevice); //print(372);
+
+	// Do calculation on device
+	matMul_CUDA_float <<<num_block, NUM_THREAD>>> (sumDev, num, vector1_device, vector2_device); // call CUDA kernel
+	// Retrieve result from device and store it in host array 
+	cudaMemcpy(sumHost, sumDev, size, cudaMemcpyDeviceToHost);//print(378);
+	// Cleanup
+	cudaFree(sumDev);
+	cudaFree(vector1_device);
+	cudaFree(vector2_device);
+	return sumHost;
 }
 
 double *matrixMul_double_cuda(double* vector1, double* vector2, int num){
@@ -429,13 +425,15 @@ double *matrixMul_double_cuda(double* vector1, double* vector2, int num){
 	// Retrieve result from device and store it in host array
 	cudaMemcpy(sumHost, sumDev, size, cudaMemcpyDeviceToHost);
 	// Cleanup
-	//free(sumHost); 
 	cudaFree(sumDev);
 	cudaFree(vector1_device);
 	cudaFree(vector2_device);
 	return sumHost;
 }
 
+/*
+ * Random Number generator
+ */
 float floatGen(){
 	float num ;
 	num = 1.0 * random() / RAND_MAX + 1.0;

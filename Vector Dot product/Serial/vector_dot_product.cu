@@ -9,6 +9,9 @@
 #define NUM_THREAD  256  // Number of thread blocks
 #define print(x) printf("%d",x)
 
+/*
+ * Define function parameters
+ */
 float dotProduct_float_serial(float vector1[], float vector2[], int size);
 float dotProduct_float_parallel(float vector1[], float vector2[], int size, int thread_count);
 float dotProduct_float_cuda(float* vector1, float* vector2, int num);
@@ -18,9 +21,10 @@ double dotProduct_double_cuda(double* vector1, double* vector2, int num);
 double doubleGen();
 float floatGen();
 int operations(int size, int parallel, int serial, int cuda, int verify, int thread_count);
-void print_results_float(FILE *f, int size, float sum1, double time_spent);
-void print_results_double(FILE *f, int size, double sum1, double time_spent);
+void print_results_float( int size, float sum1, double time_spent);
+void print_results_double( int size, double sum1, double time_spent);
 
+//Functions run on GPU
 __global__ void dotProduct_CUDA_double(double *sum, int size, double *vector1, double *vector2){
 	int idx = blockIdx.x*blockDim.x+threadIdx.x;  // Sequential thread index across the blocks
 	if(idx < size){
@@ -93,9 +97,6 @@ int operations(int size, int parallel, int serial, int cuda, int verify, int thr
 	double time_spent_serial, time_spent_parallel, time_spent_cuda;
 	float sum1_serial,sum1_parallel,sum1_cuda;
 	double sum2_serial,sum2_parallel,sum2_cuda;
-	FILE *f1 = fopen("serial_results.txt", "ab+");
-	FILE *f2 = fopen("parallel_results.txt", "ab+");
-	FILE *f3 = fopen("cuda_results.txt", "ab+");
 	srand(time(NULL));
 	
 	float *vector1;
@@ -107,7 +108,7 @@ int operations(int size, int parallel, int serial, int cuda, int verify, int thr
 		*(vector2+j) = floatGen();
 	}
 	printf("===================================================================\n");
-	fprintf(f1, "===================================================================\n");
+	//fprintf( "===================================================================\n");
 	printf("\tVector Initialization is completed\n");
 	if(serial || verify){
 		printf("Run Serial\n");
@@ -115,7 +116,7 @@ int operations(int size, int parallel, int serial, int cuda, int verify, int thr
 		sum1_serial = dotProduct_float_serial(vector1,vector2,size);
 		end = clock();
 		time_spent_serial = (double)(end - begin)/ CLOCKS_PER_SEC;
-		print_results_float(f1, size, sum1_serial, time_spent_serial);
+		print_results_float( size, sum1_serial, time_spent_serial);
 	}
 
 	if(parallel){
@@ -124,7 +125,7 @@ int operations(int size, int parallel, int serial, int cuda, int verify, int thr
 		sum1_parallel = dotProduct_float_parallel(vector1,vector2,size,thread_count);
 		end = clock();
 		time_spent_parallel = (double)(end - begin)/ CLOCKS_PER_SEC;
-		print_results_float(f2, size, sum1_parallel, time_spent_parallel);
+		print_results_float( size, sum1_parallel, time_spent_parallel);
 	}
 
 	if(cuda){
@@ -133,7 +134,7 @@ int operations(int size, int parallel, int serial, int cuda, int verify, int thr
 		sum1_cuda = dotProduct_float_cuda(vector1,vector2,size);
 		end = clock();
 		time_spent_cuda = (double)(end - begin)/ CLOCKS_PER_SEC;
-		print_results_float(f3, size, sum1_parallel, time_spent_cuda);
+		print_results_float( size, sum1_parallel, time_spent_cuda);
 	}
 
 	if(verify){
@@ -176,19 +177,21 @@ int operations(int size, int parallel, int serial, int cuda, int verify, int thr
 		*(vector4+j) = doubleGen();
 	}
 	if(serial || verify){
+		printf("Run Serial\n");
 		begin = clock();		
 		sum2_serial = dotProduct_double_serial(vector3,vector4,size);
 		end = clock();
 		time_spent_serial = (double)(end - begin)/ CLOCKS_PER_SEC;
-		print_results_double(f1, size, sum2_serial, time_spent_serial);
+		print_results_double( size, sum2_serial, time_spent_serial);
 	}
 
 	if(parallel){
+		printf("Run Parallel\n");
 		begin = clock();		
 		sum2_parallel = dotProduct_double_parallel(vector3,vector4,size,thread_count);
 		end = clock();
 		time_spent_parallel = (double)(end - begin)/ CLOCKS_PER_SEC;
-		print_results_double(f1, size, sum2_parallel, time_spent_parallel);
+		print_results_double( size, sum2_parallel, time_spent_parallel);
 	}
 
 	if(cuda){
@@ -197,7 +200,7 @@ int operations(int size, int parallel, int serial, int cuda, int verify, int thr
 		sum2_cuda = dotProduct_double_cuda(vector3,vector4,size);
 		end = clock();
 		time_spent_cuda = (double)(end - begin)/ CLOCKS_PER_SEC;
-		print_results_float(f3, size, sum1_parallel, time_spent_cuda);
+		print_results_float( size, sum1_parallel, time_spent_cuda);
 	}
 
 	if(verify){
@@ -230,32 +233,20 @@ int operations(int size, int parallel, int serial, int cuda, int verify, int thr
 	}
 	free(vector3);
 	free(vector4);
-	fclose(f1);
-	fclose(f2);
-	fclose(f3);
 	return 1;
 }
 
-void print_results_float(FILE *f, int size, float sum1, double time_spent){
-	//printf("\n\nVector size : %ld\n",size);
-	//printf("Dot product : %f\n", sum1);
+void print_results_float( int size, float sum1, double time_spent){
 	printf("Single Precision Time Spent : %lf\n\n",time_spent);
-	fprintf(f,"Vector size : %d\n",size);
-	fprintf(f,"Dot product : %f", sum1);
-	fprintf(f,"Single Precision Time Spent : %lf\n\n",time_spent);
-	fprintf(f, "===================================================================\n");
 }
 
-void print_results_double(FILE *f, int size, double sum1, double time_spent){
-	//printf("Vector size : %ld\n",size);
-	//printf("Dot product : %lf\n", sum1);
+void print_results_double( int size, double sum1, double time_spent){
 	printf("Double Precision Time Spent : %lf\n\n",time_spent);
-	fprintf(f,"Vector size : %d\n",size);
-	fprintf(f,"Dot product : %lf", sum1);
-	fprintf(f,"Double Precision Time Spent : %lf\n\n",time_spent);
-	fprintf(f, "===================================================================\n");
 }
 
+/*
+ * vector dot product sequential
+ */
 float dotProduct_float_serial(float* vector1, float* vector2, int size){
 	float sum = 0.0;
 	int i;
@@ -264,6 +255,19 @@ float dotProduct_float_serial(float* vector1, float* vector2, int size){
 	}
 	return sum;
 }
+
+double dotProduct_double_serial(double* vector1, double* vector2, int size){
+	double sum = 0.0;
+	int i;
+	for(i=0; i < size; i++){
+		sum += (*(vector1+i)) * (*(vector2+i));
+	}
+	return sum;
+}
+
+/*
+ * Vector dot product OMP threads
+ */
 
 float dotProduct_float_parallel(float* vector1, float* vector2, int size, int thread_count){
 	float sum = 0.f;
@@ -278,6 +282,23 @@ float dotProduct_float_parallel(float* vector1, float* vector2, int size, int th
 	
 	return sum;
 }
+
+double dotProduct_double_parallel(double* vector1, double* vector2, int size, int thread_count){
+	double sum = 0.0;
+	int i;
+	#pragma omp parallel num_threads(thread_count)
+	{
+		#pragma omp for schedule(static) reduction(+:sum)
+		for(i=0; i < size; i++){
+			sum += (*(vector1+i)) * (*(vector2+i));
+		}
+	}
+	return sum;
+}
+
+/*
+ * Vector dot product CUDA
+ */
 
 float dotProduct_float_cuda(float* vector1, float* vector2, int num){
 	int num_block = (num + NUM_THREAD - 1)/(NUM_THREAD);
@@ -310,30 +331,6 @@ float dotProduct_float_cuda(float* vector1, float* vector2, int num){
 	cudaFree(vector1_device);
 	cudaFree(vector2_device);
 	return dotProduct;
-}
-
-//__global__()
-
-double dotProduct_double_serial(double* vector1, double* vector2, int size){
-	double sum = 0.0;
-	int i;
-	for(i=0; i < size; i++){
-		sum += (*(vector1+i)) * (*(vector2+i));
-	}
-	return sum;
-}
-
-double dotProduct_double_parallel(double* vector1, double* vector2, int size, int thread_count){
-	double sum = 0.0;
-	int i;
-	#pragma omp parallel num_threads(thread_count)
-	{
-		#pragma omp for schedule(static) reduction(+:sum)
-		for(i=0; i < size; i++){
-			sum += (*(vector1+i)) * (*(vector2+i));
-		}	
-	}
-	return sum;
 }
 
 double dotProduct_double_cuda(double* vector1, double* vector2, int num){
@@ -369,6 +366,9 @@ double dotProduct_double_cuda(double* vector1, double* vector2, int num){
 	return dotProduct;
 }
 
+/*
+ * Random Number generation between 1 - 2
+ */
 float floatGen(){
 	float num ;
 	num = 1.0 * random() / RAND_MAX + 1.0;

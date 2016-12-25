@@ -81,38 +81,6 @@ double host_monte_carlo_d(long trials) {
 	return 4.0f * points_in_circle / trials;
 }
 
-//run on cpu with threads
-float para_monte_carlo(long trials, int thread_count) {
-	float x, y;
-	long points_in_circle = 0;
-	#pragma omp parallel num_threads(thread_count) private(x,y)
-	{
-		#pragma omp for schedule(static) reduction(+:points_in_circle)
-		for(long i = 0; i < trials; i++) {
-			x = rand() / (float) RAND_MAX;
-			y = rand() / (float) RAND_MAX;
-			points_in_circle += (x*x + y*y <= 1.0f);
-		}
-	}
-
-	return 4.0f * points_in_circle / trials;
-}
-
-double para_monte_carlo_d(long trials, int thread_count) {
-	double x, y;
-	long points_in_circle = 0;
-	#pragma omp parallel num_threads(thread_count) private(x,y)
-	{
-		#pragma omp for schedule(static) reduction(+:points_in_circle)
-		for(long i = 0; i < trials; i++) {
-			x = rand() / (double) RAND_MAX;
-			y = rand() / (double) RAND_MAX;
-			points_in_circle += (x*x + y*y <= 1.0f);
-		}
-	}
-	return 4.0f * points_in_circle / trials;
-}
-
 /*
  * pi-curand-thrust
  */
@@ -198,18 +166,14 @@ struct estimate_pi_d :
 int main(int argc, char **argv) {
 	int dp = 0;
 	int c;
-	int thread_count = 2;
+	int M = 32768;
 	while((c = getopt(argc, argv, "dn:")) != -1){
 		switch(c){
 			case 'd':
 				dp = 1;
 				break;
 			case 'n':
-				thread_count = atoi(optarg);
-				if(thread_count > 8 || thread_count < 2){
-					printf("Invalid Number of threads\nThread number is set to 2\n");
-					thread_count = 2;
-				}
+				M = atoi(optarg);
 				break;
 			default:
 				dp = 0;
@@ -217,15 +181,14 @@ int main(int argc, char **argv) {
 		}
 	}
 	clock_t start, stop;
-	int M = 32768;
 	if(!dp){
 		printf("Run with single precision\n");
 		float host[BLOCKS * THREADS];
 		float *dev;
 		curandState *devStates;
 
-		printf("# of trials per thread = %d, # of blocks = %d, # of threads/block = %d.\n", TRIALS_PER_THREAD,
-	BLOCKS, THREADS);
+		printf("# of trials per thread = %d, # of blocks = %d, # of threads/block = %d, M = %d, N = 8192\n", TRIALS_PER_THREAD,
+	BLOCKS, THREADS,M);
 
 		start = clock();
 
@@ -254,11 +217,6 @@ int main(int argc, char **argv) {
 		printf("CPU pi calculated in %lf s.\n", (double)(stop-start)/CLOCKS_PER_SEC);
 
 		start = clock();
-		float pi_para = para_monte_carlo(BLOCKS * THREADS * TRIALS_PER_THREAD, thread_count);
-		stop = clock();
-		printf("CPU with %d threads pi calculated in %lf s.\n", thread_count,(double)(stop-start)/CLOCKS_PER_SEC);
-
-		start = clock();
 		float estimate = thrust::transform_reduce(
 			          thrust::counting_iterator<int>(0),
 			          thrust::counting_iterator<int>(M),
@@ -271,7 +229,6 @@ int main(int argc, char **argv) {
 
 		printf("CUDA CuRand estimate of PI = %f [error of %f]\n", pi_gpu, pi_gpu - PI);
 		printf("CPU estimate of PI = %f [error of %f]\n", pi_cpu, pi_cpu - PI);
-		printf("CPU with %d threads estimate of PI = %f [error of %f]\n", thread_count, pi_para, pi_para - PI);
 		printf("CUDA Thrust CuRand estimate of PI = %f [error of %f]\n", estimate, estimate - PI);
 
 	}else{
@@ -280,8 +237,8 @@ int main(int argc, char **argv) {
 		double *dev;
 		curandState *devStates;
 
-		printf("# of trials per thread = %d, # of blocks = %d, # of threads/block = %d.\n", TRIALS_PER_THREAD,
-	BLOCKS, THREADS);
+		printf("# of trials per thread = %d, # of blocks = %d, # of threads/block = %d, M = %d, N = 8192.\n", TRIALS_PER_THREAD,
+	BLOCKS, THREADS,M);
 
 		start = clock();
 
@@ -310,11 +267,6 @@ int main(int argc, char **argv) {
 		printf("CPU pi calculated in %lf s.\n", (stop-start)/(double)CLOCKS_PER_SEC);
 
 		start = clock();
-		double pi_para = para_monte_carlo_d(BLOCKS * THREADS * TRIALS_PER_THREAD, thread_count);
-		stop = clock();
-		printf("CPU with %d threads pi calculated in %lf s.\n", thread_count,(double)(stop-start)/CLOCKS_PER_SEC);
-
-		start = clock();
 		double estimate = thrust::transform_reduce(
 			          thrust::counting_iterator<int>(0),
 			          thrust::counting_iterator<int>(M),
@@ -328,7 +280,6 @@ int main(int argc, char **argv) {
 
 		printf("CUDA CuRand estimate of PI = %lf [error of %lf]\n", pi_gpu, pi_gpu - PI);
 		printf("CPU estimate of PI = %lf [error of %lf]\n", pi_cpu, pi_cpu - PI);
-		printf("CPU with %d threads estimate of PI = %lf [error of %lf]\n", thread_count, pi_para, pi_para - PI);
 		printf("CUDA Thrust CuRand estimate of PI = %lf [error of %lf]\n", estimate, estimate - PI);
 	}
 
