@@ -46,5 +46,10 @@
 			<type>1</type>
 			<location>/home/jinna/Desktop/Scientific_Computing/Scientific_Computing/Question1/pi-mystery.cu</location>
 		</link>
+		<link>
+			<name>pi-thrust-vs-curand.cu</name>
+			<type>1</type>
+			<location>/home/jinna/Desktop/Scientific_Computing/Scientific_Computing/Question1/pi-thrust-vs-curand.cu</location>
+		</link>
 	</linkedResources>
 </projectDescription>
